@@ -16,7 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include,re_path
 from dj_rest_auth.views import PasswordResetConfirmView
-# from dj_rest_auth.registration.views import VerifyEmailView
 
 
 urlpatterns = [
@@ -25,7 +24,4 @@ urlpatterns = [
     path('api/v1/auth/', include('dj_rest_auth.urls')),
     path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api/v1/auth/password/reset/confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(),name='password_reset_confirm'),
-    # path('api/v1/auth/account-confirm-email/',VerifyEmailView.as_view(), name='account_email_verification_sent'),
-    # re_path(r'^api/v1/auth/account-confirm-email/(?P<key>[-:\w]+)/$',VerifyEmailView.as_view(), name='account_confirm_email'),
-    # path('api/v1/auth/verify-email/',VerifyEmailView.as_view(), name='rest_verify_email'),
 ]
