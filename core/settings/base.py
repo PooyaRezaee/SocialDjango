@@ -15,11 +15,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',    
+    'django.contrib.sites',
 
     # 3rd Party
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'allauth',
+    'allauth.account',
+    'dj_rest_auth',
+    # 'dj_rest_auth.registration',
+
 
     # local
     'apps.accounts',
@@ -92,10 +98,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
+SITE_ID = 1
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Authtentication
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# allauth
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 # DRF SETTINGS
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
 }
 
@@ -108,5 +128,14 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+
+}
+
+# DJ REST AUTH
+REST_AUTH = {
+    'USE_JWT': True,
+    'LOGOUT_ON_PASSWORD_CHANGE': True,
+    'REGISTER_SERIALIZER': 'apps.accounts.api.serializers.CustomRegisterSerializer',
+    'JWT_AUTH_COOKIE':'accounts',
 }
