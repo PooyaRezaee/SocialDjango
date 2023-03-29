@@ -13,8 +13,9 @@ class AuthorSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return instance.username
 
-class PostsSerializer(serializers.ModelSerializer):
+class PostsSerializer(TaggitSerializer,serializers.ModelSerializer):
     author = AuthorSerializer()
+    tags = TagListSerializerField()
 
     class Meta:
         model = Post
@@ -36,14 +37,27 @@ class PostsSerializer(serializers.ModelSerializer):
         ret['created'] = self.get_humanize_time(ret['created'])
         return ret
 
-class CreatePostSerializer(serializers.ModelSerializer):
+class CreatePostSerializer(TaggitSerializer,serializers.ModelSerializer):
+    tags = TagListSerializerField(required=False)
+
     class Meta:
         model = Post
-        fields = ('title','text')
+        fields = ('title','text','tags')
 
-class PostDetailSerializer(serializers.ModelSerializer):
+class PostDetailSerializer(TaggitSerializer,serializers.ModelSerializer):
+    author = AuthorSerializer()
     tags = TagListSerializerField()
 
     class Meta:
         model = Post
         fields = '__all__'
+    
+    def get_is_modified(self, obj):
+        return obj.created != obj.modified
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+
+        ret['is_modified'] = self.get_is_modified(instance)
+        ret.pop('modified')
+        return ret

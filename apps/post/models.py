@@ -1,8 +1,10 @@
+import uuid
 from django.db import models
 from apps.accounts.models import User
 from taggit.managers import TaggableManager
 
 class Post(models.Model):
+    id = models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False)
     title = models.CharField(max_length=64)
     text = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE,related_name='posts')
