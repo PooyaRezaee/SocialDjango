@@ -2,8 +2,9 @@ from django.test import TestCase
 from apps.accounts.models import User
 from .models import Post,Comment,Like
 
-class PostModelTest(TestCase):
 
+class PostModelTest(TestCase):
+    
     @classmethod
     def setUpTestData(cls):
         cls.tags = ['test1','test2','test3']
@@ -19,7 +20,7 @@ class PostModelTest(TestCase):
 
 
 class LikeModelTest(TestCase):
-
+    
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username='testuser',email="test@t.tt", password='testpass')
@@ -41,7 +42,7 @@ class LikeModelTest(TestCase):
 
 
 class CommentModelTest(TestCase):
-
+    
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username='testuser',email="test@t.tt", password='testpass')

@@ -24,4 +24,6 @@ urlpatterns = [
     path('api/v1/auth/', include('dj_rest_auth.urls')),
     path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api/v1/auth/password/reset/confirm/<str:uidb64>/<str:token>/', PasswordResetConfirmView.as_view(),name='password_reset_confirm'),
+    
+    path('api/v1/post/', include('apps.post.api.urls',namespace='post'))
 ]
