@@ -1,7 +1,7 @@
 from django.utils.timesince import timesince
 from datetime import datetime
 from rest_framework import serializers
-from apps.post.models import Post
+from apps.post.models import Post,Like
 from apps.accounts.models import User
 from taggit.serializers import TagListSerializerField,TaggitSerializer
 
@@ -35,6 +35,7 @@ class PostsSerializer(TaggitSerializer,serializers.ModelSerializer):
         ret.pop('modified')
 
         ret['created'] = self.get_humanize_time(ret['created'])
+        ret['count_likes'] = Like.objects.filter(post=instance).count()
         return ret
 
 class CreatePostSerializer(TaggitSerializer,serializers.ModelSerializer):
@@ -60,4 +61,7 @@ class PostDetailSerializer(TaggitSerializer,serializers.ModelSerializer):
 
         ret['is_modified'] = self.get_is_modified(instance)
         ret.pop('modified')
+
+        ret['count_likes'] = Like.objects.filter(post=instance).count()
+
         return ret
