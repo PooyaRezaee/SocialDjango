@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # local
     'apps.accounts',
     'apps.post',
+    'apps.comment',
 ]
 
 MIDDLEWARE = [

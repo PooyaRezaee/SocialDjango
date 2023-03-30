@@ -30,5 +30,6 @@ urlpatterns = [
     re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$',VerifyEmailView.as_view(), name='account_confirm_email'),
     path('api/v1/auth/registration/account-confirm-email/<str:key>/', ConfirmEmailView.as_view()),
     
-    path('api/v1/post/', include('apps.post.api.urls',namespace='post'))
+    path('api/v1/post/', include('apps.post.api.urls',namespace='post')),
+    path('api/v1/comment/', include('apps.comment.api.urls',namespace='comment')),
 ]

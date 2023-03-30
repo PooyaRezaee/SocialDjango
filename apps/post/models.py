@@ -22,15 +22,4 @@ class Like(models.Model):
 
     def __str__(self):
         return str(self.user)
-
-
-class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE,related_name='comments')
-    replied_to = models.ForeignKey('self', on_delete=models.SET_NULL,blank=True,null=True,related_name='reply')
-    text = models.TextField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name='comments')
-    creataed = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return str(self.user)
-    
+        

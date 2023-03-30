@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from .models import Post,Like,Comment
+from .models import Post,Like
+from apps.comment.models import Comment
 
 class CommentInline(admin.TabularInline):
     model = Comment
@@ -45,8 +46,8 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('user','post','is_replied','creataed')
-    list_filter = (IsRepliedFilter,'creataed')
+    list_display = ('user','post','is_replied','created')
+    list_filter = (IsRepliedFilter,'created')
 
     def is_replied(self,obj):
         return obj.replied_to is not None
