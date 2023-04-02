@@ -1,35 +1,34 @@
 from rest_framework import status
-from rest_framework.test import APITestCase,APIClient
+from rest_framework.test import APITestCase,APIClient,force_authenticate,APIRequestFactory
 from django.urls import reverse
 from apps.comment.models import Comment
+from apps.comment.api.views import PostCreateCommentAPIView
 from apps.post.models import Post
 from apps.accounts.models import User
 
 class PostCommentTests(APITestCase):
     @classmethod
-    def setUpTestData(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', email="test@tt.tt", password='testpass')
-        self.post = Post.objects.create(title='Test post', text='Test content', author=self.user)
-
-        # Get Jwt Token
-        login_data = {'username': 'testuser', 'password': 'testpass'}
-        url_data = reverse('account:token_obtain_pair')
-        token_response = self.client.post(url_data, data=login_data)
-        self.token = token_response.json()['access']
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username='testuser', email="test@tt.tt", password='testpass')
+        cls.post = Post.objects.create(title='Test post', text='Test content', author=cls.user)
+        cls.factory = APIRequestFactory()
 
     def test_create_comment(self):
+        view = PostCreateCommentAPIView.as_view()
         url = reverse('comment:create-comment', kwargs={'pk_post': self.post.pk})
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
         data = {'text': 'Test comment'}
-        response = self.client.post(url, data)
+        request = self.factory.post(url, data)
+        force_authenticate(request, user=self.user)
+        response = view(request,pk_post=self.post.pk)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_comment_with_invalid_comment_id(self):
+        view = PostCreateCommentAPIView.as_view()
         url = reverse('comment:create-comment', kwargs={'pk_post': self.post.pk})
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
         data = {'text': 'Test comment', 'comment_id': 100}
-        response = self.client.post(url, data)
+        request = self.factory.post(url, data)
+        force_authenticate(request, user=self.user)
+        response = view(request, pk_post=self.post.pk)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('comment_id', response.data)
 
