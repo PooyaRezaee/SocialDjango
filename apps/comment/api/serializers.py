@@ -6,7 +6,12 @@ from apps.comment.models import Comment
 
 class CreateCommentSerializer(serializers.Serializer):
     text = serializers.CharField(max_length=512)
-    comment_id = serializers.IntegerField(required=False)
+    comment_id = serializers.IntegerField(required=False, default=None)
+
+    def validate_comment_id(self, value):
+        if value is not None and not Comment.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Comment with this id does not exist.")
+        return value
 
 class CommentSerializer(serializers.ModelSerializer):
     user = AuthorSerializer()
@@ -14,13 +19,17 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         exclude = ('replied_to','post')
-    
+
     def get_humanize_time(self, time):
         time = time.split('.')[0]
-        return timesince(datetime.strptime(time, "%Y-%m-%dT%H:%M:%S"))
+        try:
+            return timesince(datetime.strptime(time, "%Y-%m-%d %H:%M:%S"))
+        except ValueError:
+            return timesince(datetime.strptime(time, "%Y-%m-%dT%H:%M:%S"))
 
-    def to_representation(self, instance):    
+
+    def to_representation(self, instance):
         ret = super().to_representation(instance)
 
-        ret['created'] = self.get_humanize_time(ret['created'])
+        ret['created'] = self.get_humanize_time(str(ret['created']))
         return ret

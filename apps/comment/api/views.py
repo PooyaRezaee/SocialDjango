@@ -37,7 +37,7 @@ class PostCreateCommentAPIView(APIView):
                 replied_to = None
             
             comment = Comment.objects.create(post=post,replied_to=replied_to,text=text,user=user)
-            return Response(srz_data)
+            return Response(srz_data,status=status.HTTP_201_CREATED)
         else:
             return Response(srz.errors,status=status.HTTP_400_BAD_REQUEST)
 
