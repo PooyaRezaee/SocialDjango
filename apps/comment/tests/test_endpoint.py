@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase,APIClient,force_authenticate,APIRequestFactory
 from django.urls import reverse
 from apps.comment.models import Comment
-from apps.comment.api.views import PostCreateCommentAPIView
+from apps.comment.api.views import PostCreateCommentAPIView,DeleteCommentApiView
 from apps.post.models import Post
 from apps.accounts.models import User
 
@@ -43,4 +43,24 @@ class PostCommentTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK) # TODO CHECK COMMENTS IN IT
 
+    def test_delete_comment_with_owner(self):
+        comment = Comment.objects.create(post=self.post, text='Test comment', user=self.user)
+        view = DeleteCommentApiView.as_view()
+        url = reverse('comment:delete-comment', kwargs={'pk_comment': comment.id})
+        request = self.factory.delete(url)
+        force_authenticate(request, user=self.user)
+        response = view(request,pk_comment=comment.id)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data,None)
+
+
+    def test_delete_commnet_without_owner(self):
+        comment = Comment.objects.create(post=self.post, text='Test comment', user=self.user)
+        user2 = User.objects.create_user(username='testuser2', email="test2@tt.tt", password='testpass2')
+        view = DeleteCommentApiView.as_view()
+        url = reverse('comment:delete-comment', kwargs={'pk_comment': comment.id})
+        request = self.factory.delete(url)
+        force_authenticate(request, user=user2)
+        response = view(request,pk_comment=comment.id)
+        self.assertEqual(response.status_code, 403)
 

@@ -1,18 +1,19 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView,DestroyAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from apps.post.models import Post
 from apps.comment.models import Comment
+from core.permissions import OwnerCommentOnly
 from .serializers import CreateCommentSerializer,CommentSerializer
-
 
 __all__ = [
     'PostCreateCommentAPIView',
     'PostListCommentsAPIView',
     'ReplysCommentAPIView',
+    'DeleteCommentApiView',
 ]
 
 class PostCreateCommentAPIView(APIView):
@@ -57,3 +58,10 @@ class ReplysCommentAPIView(ListAPIView):
         comment_pk = self.kwargs.get('pk_comment')
         comment = get_object_or_404(Comment,pk=comment_pk)
         return Comment.objects.filter(replied_to=comment)
+
+class DeleteCommentApiView(DestroyAPIView):
+    permission_classes = [OwnerCommentOnly]
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'pk_comment'

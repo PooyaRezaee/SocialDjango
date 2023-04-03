@@ -11,3 +11,12 @@ class IsOwnerOrReadOnly(BasePermission):
             return True
 
         return request.user == obj.author
+
+class OwnerCommentOnly(BasePermission):
+    message = 'YThis Comment Not for You'
+
+    def has_permission(self, request, view):
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.user
