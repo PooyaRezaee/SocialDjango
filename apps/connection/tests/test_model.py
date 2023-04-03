@@ -38,3 +38,10 @@ class ModelFollowTest(TestCase):
         self.assertEqual(self.user1.followings_in_reuest.count(), 0)
         self.assertEqual(self.user2.followings_in_reuest.count(), 0)
         self.assertEqual(self.user3.followings_in_reuest.count(), 1)
+
+    def test_follow_with_method_follow_user(self):
+        user = baker.make('accounts.User')
+        self.assertTrue(user.follow(self.user1.username))
+        self.assertEqual(user.followers_real.count(),0)
+        self.assertEqual(user.followings_real.count(),1)
+

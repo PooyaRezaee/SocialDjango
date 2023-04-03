@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from apps.connection.models import Follow
 
 
 class CustomUserManager(BaseUserManager):
@@ -71,4 +72,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     def followings_in_reuest(self):
         return self.followings.filter(in_request=True)
 
+    def follow(self,username):
+        try:
+            target_user = User.objects.get(username=username)
+            if Follow.objects.filter(following=self, follower=target_user).exists(): # TODO FIX THIS BUG
+                return False
+            Follow.objects.create(following=self, follower=target_user,in_request=False) # TODO get in_request with filed for pub | pri
+            return True
+        except:
+            return False
+
+    def unfollow(self,username):
+        try:
+            target_user = User.objects.get(username=username)
+            follow_obj = Follow.objects.get(following=self, follower=target_user)
+            follow_obj.delete()
+            return True
+        except:
+            return False
 

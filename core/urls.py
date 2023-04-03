@@ -32,4 +32,5 @@ urlpatterns = [
     
     path('api/v1/post/', include('apps.post.api.urls',namespace='post')),
     path('api/v1/comment/', include('apps.comment.api.urls',namespace='comment')),
+    path('api/v1/connection/', include('apps.connection.api.urls',namespace='connection')),
 ]
