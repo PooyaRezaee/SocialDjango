@@ -54,3 +54,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    @property
+    def followers_real(self):
+        return self.followers.filter(in_request=False)
+
+    @property
+    def followings_real(self):
+        return self.followings.filter(in_request=False)
+
+    @property
+    def followers_in_reqest(self):
+        return self.followers.filter(in_request=True)
+
+    @property
+    def followings_in_reuest(self):
+        return self.followings.filter(in_request=True)
+
+

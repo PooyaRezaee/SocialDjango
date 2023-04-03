@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.post',
     'apps.comment',
+    'apps.connection',
 ]
 
 MIDDLEWARE = [
