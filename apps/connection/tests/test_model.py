@@ -1,6 +1,8 @@
 from django.test import TestCase
 from apps.connection.models import Follow
 from model_bakery import baker
+from django.db.utils import IntegrityError
+from django.core.exceptions import ValidationError
 
 class ModelFollowTest(TestCase):
     @classmethod
@@ -44,4 +46,18 @@ class ModelFollowTest(TestCase):
         self.assertTrue(user.follow(self.user1.username))
         self.assertEqual(user.followers_real.count(),0)
         self.assertEqual(user.followings_real.count(),1)
+
+    def test_duplicated_follow(self):
+        user1 = baker.make('accounts.User')
+        user2 = baker.make('accounts.User')
+        Follow.objects.create(following=user1, follower=user2, in_request=False)
+        with self.assertRaises(IntegrityError):
+            Follow.objects.create(following=user1, follower=user2, in_request=False)
+        self.assertEqual(user2.followers.count(), 1)
+
+    def test_follow_self(self):
+        user1 = baker.make('accounts.User')
+        with self.assertRaises(ValidationError):
+            Follow.objects.create(following=user1, follower=user1, in_request=False)
+        self.assertEqual(user1.followers.count(), 0)
 

@@ -75,8 +75,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def follow(self,username):
         try:
             target_user = User.objects.get(username=username)
-            if Follow.objects.filter(following=self, follower=target_user).exists(): # TODO FIX THIS BUG
-                return False
             Follow.objects.create(following=self, follower=target_user,in_request=False) # TODO get in_request with filed for pub | pri
             return True
         except:
