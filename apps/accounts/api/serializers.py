@@ -15,3 +15,6 @@ class CustomRegisterSerializer(RegisterSerializer):
             'password2': self.validated_data.get('password2', ''),
             'email': self.validated_data.get('email', ''),
         }
+
+class ProfileImageSerializer(serializers.Serializer):
+    profile_picture = serializers.ImageField()

@@ -147,3 +147,7 @@ REST_AUTH = {
     'REGISTER_SERIALIZER': 'apps.accounts.api.serializers.CustomRegisterSerializer',
     'JWT_AUTH_COOKIE':'accounts',
 }
+
+#Media setting
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'

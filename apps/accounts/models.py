@@ -47,6 +47,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
+    profile_picture = models.ImageField(upload_to='img/profile', blank=True, null=True)
+    bio = models.CharField(max_length=512, blank=True, null=True)
+    private_account = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email','first_name', 'age']
