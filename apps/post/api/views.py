@@ -18,7 +18,7 @@ __all__ = [
 
 class PostListsAPiView(ListAPIView):
     serializer_class = PostsSerializer
-    queryset = Post.objects.all()
+    queryset = Post.public_posts.all()
 
 class PostCreateApiView(CreateAPIView):
     permission_classes = [IsAuthenticated]

@@ -2,6 +2,10 @@ from django.db import models
 from apps.accounts.models import User
 from taggit.managers import TaggableManager
 
+class PublicPostManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(author__private_account=False)
+
 class Post(models.Model):
     title = models.CharField(max_length=64)
     text = models.TextField()
@@ -13,6 +17,9 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+    objects = models.Manager() # default manager
+    public_posts = PublicPostManager()
 
 
 
