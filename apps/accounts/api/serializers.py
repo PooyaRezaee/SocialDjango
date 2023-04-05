@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.accounts.models import User
 from dj_rest_auth.registration.serializers import RegisterSerializer
 
 class CustomRegisterSerializer(RegisterSerializer):
@@ -18,3 +19,8 @@ class CustomRegisterSerializer(RegisterSerializer):
 
 class ProfileImageSerializer(serializers.Serializer):
     profile_picture = serializers.ImageField()
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username','age','first_name','last_name','bio','private_account')
