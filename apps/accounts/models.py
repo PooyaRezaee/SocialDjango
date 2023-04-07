@@ -59,21 +59,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.username
 
+    def _get_user_with_list_id(self,ids):
+        return User.objects.filter(id__in=ids)
     @property
     def followers_real(self):
-        return self.followers.filter(in_request=False)
+        return self._get_user_with_list_id(self.followers.filter(in_request=False).values_list('following',flat=True))
 
     @property
     def followings_real(self):
-        return self.followings.filter(in_request=False)
+        return self._get_user_with_list_id(self.followings.filter(in_request=False).values_list('follower',flat=True))
 
     @property
     def followers_in_reqest(self):
-        return self.followers.filter(in_request=True)
+        return self._get_user_with_list_id(self.followers.filter(in_request=True).values_list('following',flat=True))
 
     @property
     def followings_in_reuest(self):
-        return self.followings.filter(in_request=True)
+        return self._get_user_with_list_id(self.followings.filter(in_request=True).values_list('follower',flat=True))
 
     def follow(self,username):
         try:

@@ -7,16 +7,45 @@ from rest_framework import status
 from apps.post.models import Post,Like
 from .serializers import PostsSerializer,CreatePostSerializer,PostDetailSerializer
 from core.permissions import IsOwnerOrReadOnly
+from django.db.models import Q
 
 __all__ = [
-    'PostListsAPiView',
+    'PostsListAPiView',
     'PostCreateApiView',
     'PostRUDApiView',
     'PostLikeAPIView',
     'PostDislikeAPIView',
+    'PostListSuggestedAPIView',
+    'PostUserListAPiView',
 ]
 
-class PostListsAPiView(ListAPIView):
+class PostListSuggestedAPIView(APIView): # TODO MUST SET CACHED
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        user = request.user
+
+        following_usernames = [user.username for user in user.followings_real]
+        follower_usernams = [user.username for user in user.followers_real]
+
+        suggested_posts = Post.objects.filter(Q(author__username__in=following_usernames) | Q(author__username__in=follower_usernams))
+
+        suggested_posts = suggested_posts.order_by('-created')
+        serializer = PostsSerializer(suggested_posts, many=True)
+
+
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+class PostUserListAPiView(ListAPIView):
+    serializer_class = PostsSerializer
+
+    def get_queryset(self,*args,**kwargs):
+        username = self.kwargs.get('username')
+
+        return Post.public_posts.filter(author__username=username)
+
+
+class PostsListAPiView(ListAPIView):
     serializer_class = PostsSerializer
     queryset = Post.public_posts.all()
 
