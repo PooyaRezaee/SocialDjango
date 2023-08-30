@@ -21,6 +21,7 @@ class SerializerCommentTests(APITestCase):
             'text': comment.text,
             'user': user.username,
             'created': serializer.get_humanize_time(str(comment.created)),
+            'have_reply': comment.reply.exists()
         }
         self.assertEqual(serializer.data, expected_data)
 

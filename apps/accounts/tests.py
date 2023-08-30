@@ -56,7 +56,7 @@ class EndPointTests(APITestCase):
         response = self.client.get(self.url_test)
 
         self.assertEqual(response.status_code,200)
-        self.assertEqual(response.json(),{'status':'OK'})
+        self.assertEqual(response.json(),{'msg':f"Hello {self.login_data['username']}"})
 
 
 

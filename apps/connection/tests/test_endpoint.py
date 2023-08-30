@@ -34,21 +34,21 @@ class EndPointFollowTest(APITestCase):
         data = {'username': 'temp'}
         response1 = self.client.post(reverse('connection:follow'), data=data)
         response2 = self.client.post(reverse('connection:unfollow'), data=data)
-        self.assertEqual(response1.status_code, 404)
-        self.assertEqual(response2.status_code, 404)
+        self.assertEqual(response1.status_code, 400)
+        self.assertEqual(response2.status_code, 400)
 
     def test_duplicate_follow_user(self):
         self.user1.follow(self.user2)
         self.client.force_authenticate(user=self.user1)
         data = {'username': self.user2.username}
         response = self.client.post(reverse('connection:follow'), data=data)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
 
     def test_unfollow_user_no_follow(self):
         self.client.force_authenticate(user=self.user1)
         data = {'username': self.user2.username}
         response = self.client.post(reverse('connection:unfollow'), data=data)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
 
     def test_see_followers_and_followings_privet_account_without_access(self):
         Follow.objects.create(following=self.user3_privet,follower=self.user4_privet,in_request=False)
