@@ -11,4 +11,5 @@ urlpatterns = [
     path('<int:pk>/', PostRUDApiView.as_view(), name='post'),
     path('like/', PostLikeAPIView.as_view(), name='like'),
     path('dislike/', PostDislikeAPIView.as_view(), name='dislike'),
+    path('search/', SearchPostApiView.as_view(), name='search'),
 ]

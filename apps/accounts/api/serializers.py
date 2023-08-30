@@ -30,3 +30,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username','age','first_name','last_name','bio','private_account')
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['count_followers'] = instance.followers_real.count()
+        ret['count_followings'] = instance.followings_real.count()
+
+        return ret

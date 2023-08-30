@@ -7,8 +7,9 @@ from apps.post.models import Post,Like
 from .serializers import PostsSerializer,CreatePostSerializer,PostDetailSerializer
 from .mixins import ForPrivetPageFollowingRequired
 from core.permissions import IsOwnerOrReadOnly
-from django.db.models import Q
+from django.db.models import Q,Count
 from django.core.exceptions import ObjectDoesNotExist
+
 
 __all__ = [
     'PostsListAPiView',
@@ -18,6 +19,7 @@ __all__ = [
     'PostDislikeAPIView',
     'PostListSuggestedAPIView',
     'PostUserListAPiView',
+    'SearchPostApiView',
 ]
 
 
@@ -113,4 +115,35 @@ class PostDislikeAPIView(APIView):
             return Response({'msg': f'Post {pk} disliked'}, status=status.HTTP_200_OK)
         else:
             return Response({'detail': "You Don't have like on this post"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SearchPostApiView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = PostsSerializer
+    queryset = Post.public_posts.all()
+
+    def get(self, request): # TODO NEED CACHE FOR SEARCHS
+        q = request.GET.get('q')
+        tag = request.GET.get('tag')
+        if not(q or tag):
+            return Response({"detail": "Please provide a search query using the 'q' or 'tag' parameter in the URL."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.queryset
+
+        if tag:
+            quertset = queryset.filter(tags__name=tag)
+
+        if q:
+            # matching_posts = Post.objects.filter(Q(title__icontains=q) | Q(text__icontains=q)) # NOTE SIMPLE
+            queryset = queryset.annotate(
+                num_matches=Count('title', filter=Q(title__icontains=q)) + Count('text', filter=Q(text__icontains=q))
+            ).filter(
+                Q(title__icontains=q) | Q(text__icontains=q)
+            ).order_by('-num_matches')
+
+        count_matched = queryset.count()
+        srz = self.serializer_class(queryset,many=True)
+
+        return Response({'count': count_matched, 'posts': srz.data})
 

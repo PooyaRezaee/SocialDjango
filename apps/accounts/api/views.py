@@ -3,8 +3,8 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from django.shortcuts import get_object_or_404
 from apps.accounts.models import User
+from django.db.models import Q,Count
 from .serializers import ProfileImageSerializer,ProfileSerializer
 
 
@@ -13,6 +13,8 @@ __all__ = [
     'ProfilePictureAPIView',
     'SeeProfilePictureAPIView',
     'ProfileAPIView',
+    'ProfileRetriveAPIView',
+    'SearchUserApiView',
 ]
 
 
@@ -65,6 +67,12 @@ class SeeProfilePictureAPIView(RetrieveAPIView):
     lookup_field = 'username'
 
 
+class ProfileRetriveAPIView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = ProfileSerializer
+    lookup_field = 'username'
+
+
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
@@ -82,3 +90,21 @@ class ProfileAPIView(APIView):
             return Response(srz.data,status=status.HTTP_200_OK)
         else:
             return Response(srz.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+class SearchUserApiView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get(self, request):  # TODO NEED CACHE FOR SEARCHS
+        q = request.GET.get('q')
+        if not q:
+            return Response({"detail": "Please provide a search query using the 'q' parameter in the URL."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q))
+
+        count_matched = users.count()
+        srz = self.serializer_class(users, many=True)
+
+        return Response({'count': count_matched, 'users': srz.data})
