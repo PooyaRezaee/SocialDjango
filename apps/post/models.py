@@ -35,6 +35,6 @@ class Like(models.Model):
         return str(self.user)
 
 @receiver(pre_save, sender=Like)
-def check_following_and_follower(sender, instance, **kwargs):
+def check_like_valodation(sender, instance, **kwargs):
     if Like.objects.filter(user=instance.user, post=instance.post).exists():
         raise IntegrityError("This Like Operation already exists.")
