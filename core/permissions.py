@@ -1,7 +1,8 @@
+from apps.accounts.models import User
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 class IsOwnerOrReadOnly(BasePermission):
-    message = 'You not Owner'
+    message = 'You not is Owner'
 
     def has_permission(self, request, view):
         return True
@@ -13,7 +14,7 @@ class IsOwnerOrReadOnly(BasePermission):
         return request.user == obj.author
 
 class OwnerCommentOnly(BasePermission):
-    message = 'YThis Comment Not for You'
+    message = 'This Comment Not for You'
 
     def has_permission(self, request, view):
         return True

@@ -31,5 +31,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
 
+        have_reply = instance.reply.exists()
         ret['created'] = self.get_humanize_time(str(ret['created']))
+        ret['have_reply'] = have_reply
         return ret

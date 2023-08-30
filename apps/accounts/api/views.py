@@ -10,37 +10,46 @@ from .serializers import ProfileImageSerializer,ProfileSerializer
 
 __all__ = [
     'TestAPI',
-    'ChangeProfilePictureAPIView',
+    'ProfilePictureAPIView',
     'SeeProfilePictureAPIView',
     'ProfileAPIView',
 ]
+
 
 class TestAPI(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileImageSerializer
 
     def get(self,request):
-        return Response({'status':'OK'})
+        return Response({'msg':f'Hello {request.user.username}'})
 
-class ChangeProfilePictureAPIView(APIView):
+
+class ProfilePictureAPIView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileImageSerializer
 
+    def get(self,request):
+        srz = self.serializer_class(instance=request.user, context={'request': request})
+        srz_data = srz.data
+        return Response(srz_data)
 
     def post(self,request):
         serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
             user = request.user
             if user.profile_picture:
                 user.profile_picture.delete()
             user.profile_picture = serializer.validated_data['profile_picture']
             user.save()
+
             return Response({'status': 'ok'},status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request):
         user = request.user
+
         if user.profile_picture:
             user.profile_picture.delete()
             user.profile_picture = None
@@ -55,8 +64,6 @@ class SeeProfilePictureAPIView(RetrieveAPIView):
     serializer_class = ProfileImageSerializer
     lookup_field = 'username'
 
-    def get_object(self):
-        return get_object_or_404(self.get_queryset(), username=self.kwargs['username'])
 
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]

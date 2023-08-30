@@ -46,12 +46,13 @@ class CreatePostSerializer(TaggitSerializer,serializers.ModelSerializer):
         fields = ('title','text','tags')
 
 class PostDetailSerializer(TaggitSerializer,serializers.ModelSerializer):
-    author = AuthorSerializer()
+    author = AuthorSerializer(read_only=True)
     tags = TagListSerializerField()
 
     class Meta:
         model = Post
         fields = '__all__'
+        read_only_fields = ('created_at','modified')
     
     def get_is_modified(self, obj):
         return obj.created != obj.modified

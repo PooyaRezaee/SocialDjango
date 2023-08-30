@@ -1,7 +1,9 @@
 import uuid
-from django.db import models
+from django.db import models,IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from apps.connection.models import Follow
+from django.core.exceptions import ValidationError
 
 
 class CustomUserManager(BaseUserManager):
@@ -35,6 +37,7 @@ class CustomUserManager(BaseUserManager):
         user.is_staff = True
         user.save(using=self._db)
         return user
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     uuid = models.UUIDField(unique=True,default=uuid.uuid4,editable=False)
@@ -80,17 +83,33 @@ class User(AbstractBaseUser, PermissionsMixin):
     def follow(self,username):
         try:
             target_user = User.objects.get(username=username)
-            Follow.objects.create(following=self, follower=target_user,in_request=False) # TODO get in_request with filed for pub | pri
-            return True
-        except:
-            return False
+            is_privet = target_user.private_account
+            Follow.objects.create(following=self, follower=target_user, in_request=is_privet)
+            if is_privet:
+                msg = f"Sended Request Following for {target_user}"
+            else:
+                msg = f"You Followings {target_user}"
+            return True, msg
+        except IntegrityError as e:
+            return False, str(e)
+        except ValidationError as e:
+            return False, e
+        except ObjectDoesNotExist:
+            return False, f"user with username '{username}' doe's not exist."
 
     def unfollow(self,username):
         try:
-            target_user = User.objects.get(username=username)
+            try:
+                target_user = User.objects.get(username=username)
+            except ObjectDoesNotExist:
+                return False, "User Does Not Exist."
             follow_obj = Follow.objects.get(following=self, follower=target_user)
+            if follow_obj.in_request:
+                msg = f"Removed Request Follow {target_user}"
+            else:
+                msg = f"You Unfollowed {target_user}"
             follow_obj.delete()
-            return True
-        except:
-            return False
+            return True, msg
+        except ObjectDoesNotExist:
+            return False, f"You don't following {username}."
 

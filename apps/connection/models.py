@@ -11,9 +11,10 @@ class Follow(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     in_request = models.BooleanField()
 
+
 @receiver(pre_save, sender=Follow)
 def check_following_and_follower(sender, instance, **kwargs):
     if instance.following == instance.follower:
         raise ValidationError("Following and follower can't be the same user.")
-    if Follow.objects.filter(following=instance.following, follower=instance.follower).exists():
+    if not instance.pk and Follow.objects.filter(following=instance.following, follower=instance.follower).exists():
         raise IntegrityError("This follow relationship already exists.")

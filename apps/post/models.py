@@ -1,10 +1,14 @@
 from django.db import models
 from apps.accounts.models import User
 from taggit.managers import TaggableManager
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.db.utils import IntegrityError
 
 class PublicPostManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(author__private_account=False)
+
 
 class Post(models.Model):
     title = models.CharField(max_length=64)
@@ -29,4 +33,8 @@ class Like(models.Model):
 
     def __str__(self):
         return str(self.user)
-        
+
+@receiver(pre_save, sender=Like)
+def check_following_and_follower(sender, instance, **kwargs):
+    if Like.objects.filter(user=instance.user, post=instance.post).exists():
+        raise IntegrityError("This Like Operation already exists.")

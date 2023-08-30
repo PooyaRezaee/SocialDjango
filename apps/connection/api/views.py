@@ -1,38 +1,50 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from apps.accounts.models import User
+from apps.connection.models import Follow
 from .serializers import FollowUsersSerializer
+from .mixins import PrivetAccountRequired
 
 __all__ = [
     'FollowUserAPIView',
     'UnFollowUserAPIView',
     'FollowersListAPIView',
     'FollowingsListAPIView',
+    'FollowersInRequestAPIView',
+    'AcceptRequestFollowAPIView',
+    'RemoveFollowerApiView',
+    'RejectRequestFollowAPIView',
 ]
 
 class FollowUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self,requests):
-        username_target_user = requests.data['username']
-        if requests.user.follow(username_target_user):
-            return Response({'status': 'ok'},status=status.HTTP_200_OK)
+    def post(self,request):
+        username_target_user = request.data['username']
+        resualt = request.user.follow(username_target_user)
+        if resualt[0]:
+            return Response({'msg': resualt[1]}, status=status.HTTP_200_OK)
         else:
-            return Response({'detail': 'User Followed or Not Found'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': resualt[1]}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnFollowUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self,requests):
-        username_target_user = requests.data['username']
-        if requests.user.unfollow(username_target_user):
-            return Response({'status': 'ok'},status=status.HTTP_200_OK)
+    def post(self,request):
+        username_target_user = request.data['username']
+        resualt = request.user.unfollow(username_target_user)
+
+        if resualt[0]:
+            return Response({'msg': resualt[1]},status=status.HTTP_200_OK)
         else:
-            return Response({'detail': 'User Not follow you or not found'},status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': resualt[1]},status=status.HTTP_400_BAD_REQUEST)
 
 class FollowersListAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -43,11 +55,11 @@ class FollowersListAPIView(APIView):
         user = request.user
 
         if (target_user != user) and (target_user.private_account and (not user in target_user.followers_real)):
-            return Response({'detail':'You Must Be Follwer this user'},status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': "You Don't have accesss"},status=status.HTTP_403_FORBIDDEN)
 
         followers_objs = target_user.followers_real
 
-        srz = self.serializer_Class(instance=followers_objs, many=True)
+        srz = self.serializer_Class(instance=followers_objs, many=True, context={'request': request})
 
         return Response(srz.data, status=status.HTTP_200_OK)
 
@@ -60,10 +72,102 @@ class FollowingsListAPIView(APIView):
         user = request.user
 
         if (target_user != user) and (target_user.private_account and (not user in target_user.followers_real)):
-            return Response({'detail':'You Must Be Follwer this user'},status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': "You Don't have accesss"},status=status.HTTP_403_FORBIDDEN)
 
         followings_objs = target_user.followings_real
 
-        srz = self.serializer_Class(instance=followings_objs,many=True)
+        srz = self.serializer_Class(instance=followings_objs, many=True, context={'request': request})
 
         return Response(srz.data,status=status.HTTP_200_OK)
+
+
+class FollowersInRequestAPIView(ListAPIView,PrivetAccountRequired):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FollowUsersSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.followers_in_reqest
+
+
+class AcceptRequestFollowAPIView(APIView,PrivetAccountRequired):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        user = request.user
+        username_target_user = request.data['username']
+
+        request_query = user.followers_in_reqest.filter(username=username_target_user)
+        if request_query.exists():
+            request_obj = request_query.get()
+
+            try:
+                follow_obj = Follow.objects.get(following=request_obj, follower=user)
+                follow_obj.in_request = False
+                follow_obj.save()
+
+                return Response({'msg': f'accept request follow {request_obj.username}'})
+            except IntegrityError as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            msg_problem = "don't have follow request with this username"
+            return Response({"detail": msg_problem},status=status.HTTP_400_BAD_REQUEST)
+
+
+class RejectRequestFollowAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        username_target_user = request.data['username']
+
+        request_query = user.followers_in_reqest.filter(username=username_target_user)
+        if request_query.exists():
+            request_obj = request_query.get()
+
+            try:
+                follow_obj = Follow.objects.get(following=request_obj, follower=user, in_request=True)
+                follow_obj.delete()
+
+                return Response({'msg': f'Rejected request follow {username_target_user}'})
+            except IntegrityError as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            msg_problem = "don't have follow request with this username"
+            return Response({"detail": msg_problem}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RemoveFollowerApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        user = request.user
+        username_target_user = request.data['username']
+
+        try:
+            user_following = User.objects.get(username=username_target_user)
+        except ObjectDoesNotExist:
+            return Response({"detail": "User with this username does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            Follow.objects.get(following=user_following, follower=user, in_request=False).delete()
+            return Response({"msg": f"removed {username_target_user} from your followers"})
+        except ObjectDoesNotExist:
+            return Response({"detail": "User don't follow you."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # TODO RE FACTOR SEE POSTS (SHOW JSUT ACCESS POST AND DON'T SHOW PRIVET POSTS)
+        # TODO CONTINUE REFACTORE (POSTS,COMMENTS,REGISTRATION)
+
+        # request_query = user.followers_.filter(username=username_target_user)
+        # if request_query.exists():
+        #     request_obj = request_query.get()
+        #
+        #     follow_obj = Follow.objects.get(following=request_obj,follower=user)
+        #     follow_obj.in_request = False
+        #     follow_obj.save()
+        #
+        #     return Response({'msg': f'accept request follow {request_obj.username}'})
+        # else:
+        #     msg_problem = "don't have follow request with this username"
+        #     return Response({"detail": msg_problem},status=status.HTTP_400_BAD_REQUEST)
+
