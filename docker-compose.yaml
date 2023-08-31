@@ -6,8 +6,8 @@ services:
     command: ["gunicorn", "core.wsgi:application", "-b", "0.0.0.0:8000"]
     container_name: social-django
     restart: always
-    ports:
-      - "8000:8000"
+    environment:
+          - "DB_HOST=db"
     volumes:
       - .:/src
     depends_on:
@@ -32,8 +32,8 @@ services:
     restart: always
     ports:
       - "1337:80"
-#    volumes:
-#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/social_django.conf:ro
     depends_on:
       - web
 
