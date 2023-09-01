@@ -6,6 +6,7 @@ from rest_framework import status
 from apps.accounts.models import User
 from django.db.models import Q,Count
 from .serializers import ProfileImageSerializer,ProfileSerializer
+from .mixins import ScopedRateThrottleForCUMixin
 
 
 __all__ = [
@@ -26,9 +27,11 @@ class TestAPI(APIView):
         return Response({'msg':f'Hello {request.user.username}'})
 
 
-class ProfilePictureAPIView(APIView):
+class ProfilePictureAPIView(ScopedRateThrottleForCUMixin,APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileImageSerializer
+    throttle_scope = "profile"
+
 
     def get(self,request):
         srz = self.serializer_class(instance=request.user, context={'request': request})
@@ -73,9 +76,10 @@ class ProfileRetriveAPIView(RetrieveAPIView):
     lookup_field = 'username'
 
 
-class ProfileAPIView(APIView):
+class ProfileAPIView(ScopedRateThrottleForCUMixin,APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
+    throttle_scope = 'profile'
 
     def get(self,request):
         user = request.user

@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView,CreateAPIView,RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly,AllowAny
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework import status
 from apps.post.models import Post,Like
 from .serializers import PostsSerializer,CreatePostSerializer,PostDetailSerializer
@@ -58,6 +59,8 @@ class PostsListAPiView(ListAPIView):
 class PostCreateApiView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreatePostSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'post'
 
     def perform_create(self, serializer):
         author = self.request.user
@@ -74,6 +77,8 @@ class PostRUDApiView(RetrieveUpdateDestroyAPIView):
 
 class PostLikeAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'like'
 
     def post(self, request):
         data = request.data

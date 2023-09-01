@@ -5,6 +5,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.throttling import ScopedRateThrottle
 from django.shortcuts import get_object_or_404
 from apps.accounts.models import User
 from apps.connection.models import Follow
@@ -24,6 +25,8 @@ __all__ = [
 
 class FollowUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'follow'
 
     def post(self,request):
         username_target_user = request.data['username']
@@ -36,6 +39,8 @@ class FollowUserAPIView(APIView):
 
 class UnFollowUserAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'unfollow'
 
     def post(self,request):
         username_target_user = request.data['username']
@@ -154,20 +159,4 @@ class RemoveFollowerApiView(APIView):
             return Response({"msg": f"removed {username_target_user} from your followers"})
         except ObjectDoesNotExist:
             return Response({"detail": "User don't follow you."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # TODO RE FACTOR SEE POSTS (SHOW JSUT ACCESS POST AND DON'T SHOW PRIVET POSTS)
-        # TODO CONTINUE REFACTORE (POSTS,COMMENTS,REGISTRATION)
-
-        # request_query = user.followers_.filter(username=username_target_user)
-        # if request_query.exists():
-        #     request_obj = request_query.get()
-        #
-        #     follow_obj = Follow.objects.get(following=request_obj,follower=user)
-        #     follow_obj.in_request = False
-        #     follow_obj.save()
-        #
-        #     return Response({'msg': f'accept request follow {request_obj.username}'})
-        # else:
-        #     msg_problem = "don't have follow request with this username"
-        #     return Response({"detail": msg_problem},status=status.HTTP_400_BAD_REQUEST)
 

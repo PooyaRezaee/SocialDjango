@@ -4,6 +4,7 @@ from rest_framework.generics import ListAPIView,DestroyAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import ScopedRateThrottle
 from apps.post.models import Post
 from apps.comment.models import Comment
 from core.permissions import OwnerCommentOnly
@@ -12,13 +13,15 @@ from .serializers import CreateCommentSerializer,CommentSerializer
 __all__ = [
     'PostCreateCommentAPIView',
     'PostListCommentsAPIView',
-    'ReplysCommentAPIView',
+    'RepliesCommentAPIView',
     'DeleteCommentApiView',
 ]
 
 class PostCreateCommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CreateCommentSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'comment'
 
     def post(self, request, pk_post):
         srz = self.serializer_class(data=request.data)
@@ -50,7 +53,7 @@ class PostListCommentsAPIView(ListAPIView):
         post_pk = self.kwargs.get('pk_post')
         return Comment.objects.filter(post_id=post_pk,replied_to=None)
 
-class ReplysCommentAPIView(ListAPIView):
+class RepliesCommentAPIView(ListAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 

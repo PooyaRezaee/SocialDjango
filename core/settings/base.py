@@ -125,6 +125,29 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Defualt
+        'anon': '100/day',
+        'user': '100/minute',
+        
+        # Account
+        'profile': '20/day',
+
+        # Other
+        'follow': '150/hour',
+        'unfollow': '250/hour',
+        'comment': '100/minute',
+        'post': '100/minute',
+        'like': '100/minute',
+        
+        # Package
+        'dj_rest_auth': '40/hour',
+    }
 }
 
 # JWT SETTINGS
