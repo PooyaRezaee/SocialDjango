@@ -10,7 +10,9 @@ from .mixins import ForPrivetPageFollowingRequired
 from core.permissions import IsOwnerOrReadOnly
 from django.db.models import Q,Count
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+# from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 __all__ = [
     'PostsListAPiView',
@@ -24,7 +26,7 @@ __all__ = [
 ]
 
 
-class PostListSuggestedAPIView(APIView): # TODO MUST SET CACHED
+class PostListSuggestedAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
@@ -55,6 +57,10 @@ class PostsListAPiView(ListAPIView):
     serializer_class = PostsSerializer
     queryset = Post.public_posts.all()
 
+    # method_decorator(vary_on_cookie)
+    @method_decorator(cache_page(60))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 class PostCreateApiView(CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -127,7 +133,7 @@ class SearchPostApiView(APIView):
     serializer_class = PostsSerializer
     queryset = Post.public_posts.all()
 
-    def get(self, request): # TODO NEED CACHE FOR SEARCHS
+    def get(self, request):
         q = request.GET.get('q')
         tag = request.GET.get('tag')
         if not(q or tag):

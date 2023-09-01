@@ -100,7 +100,7 @@ class SearchUserApiView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
 
-    def get(self, request):  # TODO NEED CACHE FOR SEARCHS
+    def get(self, request):
         q = request.GET.get('q')
         if not q:
             return Response({"detail": "Please provide a search query using the 'q' parameter in the URL."},

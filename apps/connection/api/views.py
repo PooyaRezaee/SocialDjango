@@ -11,6 +11,8 @@ from apps.accounts.models import User
 from apps.connection.models import Follow
 from .serializers import FollowUsersSerializer
 from .mixins import PrivetAccountRequired
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 __all__ = [
     'FollowUserAPIView',
@@ -55,6 +57,7 @@ class FollowersListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_Class = FollowUsersSerializer
 
+    @method_decorator(cache_page(60))
     def get(self,request,username):
         target_user = get_object_or_404(User,username=username)
         user = request.user
@@ -72,6 +75,7 @@ class FollowingsListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_Class = FollowUsersSerializer
 
+    @method_decorator(cache_page(60))
     def get(self,request,username):
         target_user = get_object_or_404(User, username=username)
         user = request.user

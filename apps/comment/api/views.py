@@ -9,6 +9,8 @@ from apps.post.models import Post
 from apps.comment.models import Comment
 from core.permissions import OwnerCommentOnly
 from .serializers import CreateCommentSerializer,CommentSerializer
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 __all__ = [
     'PostCreateCommentAPIView',
@@ -49,6 +51,10 @@ class PostListCommentsAPIView(ListAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+    @method_decorator(cache_page(60 * 2))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
     def get_queryset(self):
         post_pk = self.kwargs.get('pk_post')
         return Comment.objects.filter(post_id=post_pk,replied_to=None)
