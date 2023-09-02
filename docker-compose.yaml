@@ -8,10 +8,8 @@ services:
     container_name: social-application
     restart: always
     environment:
-          - "DB_HOST=db"
-          - "REDIS_HOST=redis"
-    ports:
-      - "8000:8000"
+      - "DB_HOST=db"
+      - "REDIS_HOST=redis"
     volumes:
       - .:/src
       - static_files:/var/www/social
