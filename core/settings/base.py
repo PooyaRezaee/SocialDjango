@@ -26,7 +26,8 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'taggit',
-
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 
     # local
     'apps.accounts',
@@ -161,7 +162,8 @@ REST_FRAMEWORK = {
         
         # Package
         'dj_rest_auth': '40/hour',
-    }
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT SETTINGS
@@ -188,3 +190,14 @@ REST_AUTH = {
 #Media setting
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+# Schema settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Social',
+    'DESCRIPTION': 'a social by django',
+    'VERSION': '0.0.4',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+}

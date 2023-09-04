@@ -26,6 +26,10 @@ __all__ = [
 ]
 
 class FollowUserAPIView(APIView):
+    """
+    Follow a User
+    """
+
     permission_classes = [IsAuthenticated]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'follow'
@@ -40,6 +44,10 @@ class FollowUserAPIView(APIView):
 
 
 class UnFollowUserAPIView(APIView):
+    """
+    UnFollow a User
+    """
+
     permission_classes = [IsAuthenticated]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'unfollow'
@@ -54,6 +62,10 @@ class UnFollowUserAPIView(APIView):
             return Response({'detail': resualt[1]},status=status.HTTP_400_BAD_REQUEST)
 
 class FollowersListAPIView(APIView):
+    """
+    Get List FOllowers a user
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_Class = FollowUsersSerializer
 
@@ -72,6 +84,10 @@ class FollowersListAPIView(APIView):
         return Response(srz.data, status=status.HTTP_200_OK)
 
 class FollowingsListAPIView(APIView):
+    """
+    Get list followings a user
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_Class = FollowUsersSerializer
 
@@ -91,6 +107,11 @@ class FollowingsListAPIView(APIView):
 
 
 class FollowersInRequestAPIView(ListAPIView,PrivetAccountRequired):
+    """
+    Get List of request follow for user authonticated
+    this endpoint is just for privet accouts
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = FollowUsersSerializer
 
@@ -100,6 +121,10 @@ class FollowersInRequestAPIView(ListAPIView,PrivetAccountRequired):
 
 
 class AcceptRequestFollowAPIView(APIView,PrivetAccountRequired):
+    """
+    Accept request follow a user
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self,request):
@@ -124,6 +149,10 @@ class AcceptRequestFollowAPIView(APIView,PrivetAccountRequired):
 
 
 class RejectRequestFollowAPIView(APIView):
+    """
+    Reject request follow a user
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -147,6 +176,10 @@ class RejectRequestFollowAPIView(APIView):
 
 
 class RemoveFollowerApiView(APIView):
+    """
+    Remove a user from followers user authonticated
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self,request):

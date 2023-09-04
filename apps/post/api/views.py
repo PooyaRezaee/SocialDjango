@@ -27,6 +27,10 @@ __all__ = [
 
 
 class PostListSuggestedAPIView(APIView):
+    """
+    Get List Suggest posts
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
@@ -44,6 +48,11 @@ class PostListSuggestedAPIView(APIView):
 
 
 class PostUserListAPiView(ForPrivetPageFollowingRequired, ListAPIView):
+    """
+    Get list of posts a user
+    if page user is private must you have follow that
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = PostsSerializer
 
@@ -53,6 +62,10 @@ class PostUserListAPiView(ForPrivetPageFollowingRequired, ListAPIView):
 
 
 class PostsListAPiView(ListAPIView):
+    """
+    List all of posts public
+    """
+
     permission_classes = [AllowAny]
     serializer_class = PostsSerializer
     queryset = Post.public_posts.all()
@@ -63,6 +76,10 @@ class PostsListAPiView(ListAPIView):
         return super().dispatch(*args, **kwargs)
 
 class PostCreateApiView(CreateAPIView):
+    """
+    Create New post
+    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = CreatePostSerializer
     throttle_classes = [ScopedRateThrottle]
@@ -75,6 +92,11 @@ class PostCreateApiView(CreateAPIView):
 
 
 class PostRUDApiView(RetrieveUpdateDestroyAPIView):
+    """
+    Read Post for each have access
+    Update Delete post by owner it
+    """
+
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     queryset = Post.objects.all()
     serializer_class = PostDetailSerializer
@@ -82,6 +104,10 @@ class PostRUDApiView(RetrieveUpdateDestroyAPIView):
 
 
 class PostLikeAPIView(APIView):
+    """
+    Like a post
+    """
+
     permission_classes = [IsAuthenticated]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'like'
@@ -106,6 +132,10 @@ class PostLikeAPIView(APIView):
 
 
 class PostDislikeAPIView(APIView):
+    """
+    Dislike a post
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -129,6 +159,11 @@ class PostDislikeAPIView(APIView):
 
 
 class SearchPostApiView(APIView):
+    """
+    Search by send query string 'q' for title and text & 'tag' for tag a post
+    You can use two filter together
+    """
+
     permission_classes = [AllowAny]
     serializer_class = PostsSerializer
     queryset = Post.public_posts.all()

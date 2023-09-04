@@ -19,6 +19,7 @@ from dj_rest_auth.views import PasswordResetConfirmView
 from dj_rest_auth.registration.views import VerifyEmailView,ConfirmEmailView
 from django.conf.urls.static import static
 from django.conf import settings
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,6 +36,12 @@ urlpatterns = [
     path('api/v1/post/', include('apps.post.api.urls',namespace='post')),
     path('api/v1/comment/', include('apps.comment.api.urls',namespace='comment')),
     path('api/v1/connection/', include('apps.connection.api.urls',namespace='connection')),
+
+    # YOUR PATTERNS
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Optional UI:
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
