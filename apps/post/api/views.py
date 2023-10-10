@@ -1,18 +1,20 @@
+from django.db.models import Q,Count,F
+from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.utils import timezone
+
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView,CreateAPIView,RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly,AllowAny
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework import status
+
+from core.permissions import IsOwnerOrReadOnly
 from apps.post.models import Post,Like
 from .serializers import PostsSerializer,CreatePostSerializer,PostDetailSerializer
 from .mixins import ForPrivetPageFollowingRequired
-from core.permissions import IsOwnerOrReadOnly
-from django.db.models import Q,Count
-from django.core.exceptions import ObjectDoesNotExist
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
-# from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 __all__ = [
     'PostsListAPiView',
@@ -23,6 +25,7 @@ __all__ = [
     'PostListSuggestedAPIView',
     'PostUserListAPiView',
     'SearchPostApiView',
+    'PostListTrendingAPIView',
 ]
 
 
@@ -43,6 +46,37 @@ class PostListSuggestedAPIView(APIView):
 
         suggested_posts = suggested_posts.order_by('-created')
         serializer = PostsSerializer(suggested_posts, many=True)
+
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+
+class PostListTrendingAPIView(APIView):
+    """
+    Get List Trending posts
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self,request):
+        datetime_now = timezone.now()
+        delta_recent_time_for_like = timezone.timedelta(hours=48)
+        delta_recent_time_for_post = timezone.timedelta(days=120)
+
+        start_datetime_for_post = datetime_now - delta_recent_time_for_post
+        start_datetime_for_like = datetime_now - delta_recent_time_for_like
+
+        posts = Post.objects.filter(created__range=(start_datetime_for_post,datetime_now))
+        # Add Weight by "follower X1 , like X10 , view X5"
+
+        count_recent_likes = Count('likes', filter=Q(likes__liked_at__range=(start_datetime_for_like,datetime_now)))
+        count_author_followers = Count('author__followers')
+        # count_views = Count() TODO Add after initlize system view counter
+
+        posts = posts.annotate(count_recent_likes=count_recent_likes,count_author_followers=count_author_followers)
+        posts = posts.annotate(Weight=((F('count_recent_likes') * 10) + (F('count_author_followers') * 1)))
+
+        trending_posts = posts.order_by('-Weight')
+        serializer = PostsSerializer(trending_posts, many=True)
 
         return Response(serializer.data,status=status.HTTP_200_OK)
 
